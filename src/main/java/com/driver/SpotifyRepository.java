@@ -169,6 +169,38 @@ public class SpotifyRepository {
         return mostPopularArtist;
     }
 
+    public Song likeSong(String mobile, String songTitle) throws Exception {
+        User user = findUserByMobile(mobile);
+        if (user == null) {
+            throw new Exception("User does not exist");
+        }
+
+        Song song = findSongByTitle(songTitle);
+        if (song == null) {
+            throw new Exception("Song does not exist");
+        }
+
+        List<User> likedUsers = songLikeMap.getOrDefault(song, new ArrayList<>());
+        if (!likedUsers.contains(user)) {
+            likedUsers.add(user);
+            songLikeMap.put(song, likedUsers);
+
+            // Auto-like the corresponding artist
+            String artistName = getArtistNameFromSong(song);
+            if (artistName != null) {
+                Artist artist = findArtistByName(artistName);
+                if (artist != null) {
+                    artist.setLikes(artist.getLikes() + 1);
+                }
+            }
+
+            // Update song likes
+            song.setLikes(song.getLikes() + 1);
+        }
+
+        return song;
+    }
+
     public String mostPopularSong() {
         String mostPopularSong = null;
         int maxLikes = Integer.MIN_VALUE;
@@ -226,9 +258,6 @@ public class SpotifyRepository {
                 .orElse(null);
     }
 
-    public Song likeSong(String mobile, String songTitle) {
-        return null;
-    }
 }
 
 
